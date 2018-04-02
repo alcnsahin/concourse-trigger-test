@@ -85,14 +85,31 @@ public class ConcourseClient {
 			}
 
 		}
-
-		httpPost = new HttpPost(
-				CONCOURSE_ROOT_PATH + "/api/v1/teams/main/pipelines/" + pipelineName + "/jobs/deploy-to-qa/builds");
-		httpPost.setHeader("Authorization", bearerValue);
+		
+		httpGet = new HttpGet(CONCOURSE_ROOT_PATH + "/api/v1/teams/main/pipelines/"+pipelineName+"/jobs/"+CONCOURSE_JOB_NAME);
+		httpGet.setHeader("Authorization", bearerValue);
 		client = HttpClientBuilder.create().build();
-		response = client.execute(httpPost);
+		ResponseHandler<String> handler = new BasicResponseHandler();
+		response = client.execute(httpGet);
+		String body = handler.handleResponse(response);
 
-		System.err.println(response.getStatusLine().getStatusCode());
+		// get last build details
+		JsonObject jsonBodyObject = new JsonParser().parse(body).getAsJsonObject();
+		String jobName = jsonBodyObject.get("name").getAsString();
+		JsonObject jsonBuildObject = new JsonParser().parse(jsonBodyObject.get("next_build").toString())
+				.getAsJsonObject();
+		String buildId = jsonBuildObject.get("id").getAsString();
+		System.out.println("pipeline_name: " + pipelineName);
+		System.out.println("job_name: " + jobName);
+		System.out.println("build_id: " + buildId);
+		
+		// set build_id to consul
+		HttpPut httpPut = new HttpPut(CONSUL_ROOT_PATH + "/" + pipelineName + "/" + jobName);
+		httpPut.setEntity(new StringEntity(issueId+ "#" + buildId));
+		client = HttpClientBuilder.create().build();
+		response = client.execute(httpPut);
+		System.out.println(response.getStatusLine().getStatusCode());
+		
 	}
 
 }
