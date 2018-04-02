@@ -25,6 +25,7 @@ public class ConcourseClient {
 	private static final String CONCOURSE_AUTH_URL = "concourse_auth_url";
 	private static final String UAA_AUTH_URL = "uaa_auth_url";
 	private static final String CONCOURSE_ROOT_PATH = "";
+	private static final String CONCOURSE_JOB_NAME = "pre-prod";
 
 	public static void execute(String pipelineName) throws Exception {
 		BasicCookieStore cookieStore = new BasicCookieStore();
